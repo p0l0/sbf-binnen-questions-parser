@@ -22,7 +22,12 @@ def downloadFile(url, destdir):
     if not os.path.exists(destdir):
         os.makedirs(destdir)
 
-    localFilename = os.path.join(destdir, url.split('/')[-1])
+    imageSrc = os.path.join(destdir, url.split('/')[-1])
+    localFilename = IMAGE_REGEX.search(imageSrc)
+    if localFilename.groups:
+        localFilename = localFilename.group(1)
+    else:
+        localFilename = imageSrc
 
     r = requests.get(url, stream=True)
     with open(localFilename, 'wb') as f:
@@ -63,14 +68,8 @@ if response.status_code == requests.codes.ok:
                             # This means that we probably have an image
                             image = item.find('img')
                             if image:
-                                imageSrc = IMAGE_REGEX.search(image['src'])
-                                if imageSrc.groups:
-                                    imageSrc = imageSrc.group(1)
-                                else:
-                                    imageSrc = image['src']
-
-                                imageSrc = downloadFile(baseURL + imageSrc, ASSET_DIR)
-                                questionStr = questionStr + '<img src="' + imageSrc + '" />'
+                                imageSrc = downloadFile(baseURL + image['src'], ASSET_DIR)
+                                questionStr = questionStr + '<p><img src="' + imageSrc + '" /></p>'
                         continue
 
                     questionStr = questionStr + item.string.strip('\n\r')
